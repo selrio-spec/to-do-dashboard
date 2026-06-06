@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pastel Productivity Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="sidebar" aria-label="Dashboard summary">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">P</div>
+          <div>
+            <p class="eyebrow">Pastel Desk</p>
+            <h1>Today</h1>
+          </div>
+        </div>
+
+        <section class="focus-panel" aria-label="Focus summary">
+          <p class="panel-label">Focus score</p>
+          <div class="score-row">
+            <strong id="focusScore">0%</strong>
+            <span id="focusCopy">Add a task to begin.</span>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+        </section>
+
+        <section class="stats-grid" aria-label="Task statistics">
+          <article>
+            <span id="totalCount">0</span>
+            <p>Total</p>
+          </article>
+          <article>
+            <span id="activeCount">0</span>
+            <p>Active</p>
+          </article>
+          <article>
+            <span id="doneCount">0</span>
+            <p>Done</p>
+          </article>
+          <article>
+            <span id="dueTodayCount">0</span>
+            <p>Due today</p>
+          </article>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="currentDate">Productivity dashboard</p>
+            <h2>Plan your calm, clear day.</h2>
+          </div>
+          <div class="top-actions">
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+              <span class="toggle-track" aria-hidden="true">
+                <span class="toggle-thumb"></span>
+              </span>
+              <span id="themeLabel">Light</span>
+            </button>
+            <button class="icon-button" id="clearDoneButton" type="button" aria-label="Clear completed tasks" title="Clear completed">
+              <span aria-hidden="true">OK</span>
+            </button>
+          </div>
+        </header>
+
+        <form class="task-form" id="taskForm">
+          <label class="input-wrap">
+            <span>Task</span>
+            <input id="taskInput" type="text" placeholder="Write a focused next step..." autocomplete="off" required />
+          </label>
+
+          <label class="select-wrap">
+            <span>Priority</span>
+            <select id="priorityInput">
+              <option value="gentle">Gentle</option>
+              <option value="focus">Focus</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </label>
+
+          <label class="input-wrap date-wrap">
+            <span>Due</span>
+            <input id="dueInput" type="date" />
+          </label>
+
+          <button class="add-button" type="submit">Add</button>
+        </form>
+
+        <nav class="filter-bar" aria-label="Task filters">
+          <button class="filter-button active" type="button" data-filter="all">All</button>
+          <button class="filter-button" type="button" data-filter="active">Active</button>
+          <button class="filter-button" type="button" data-filter="done">Done</button>
+          <button class="filter-button" type="button" data-filter="today">Today</button>
+        </nav>
+
+        <section class="task-board" aria-live="polite">
+          <div class="board-heading">
+            <h3>Tasks</h3>
+            <p id="taskHint">Your list is ready for a soft launch.</p>
+          </div>
+          <ul id="taskList" class="task-list"></ul>
+          <div id="emptyState" class="empty-state">
+            <div aria-hidden="true">+</div>
+            <p>No tasks here yet.</p>
+            <span>Add one focused step to start the dashboard.</span>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
