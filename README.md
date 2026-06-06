@@ -5,6 +5,7 @@ A clean and responsive task management dashboard built with HTML, CSS, and JavaS
 ## Live Demo
 
 🔗 https://to-do-dashboard-nine.vercel.app
+<img width="2859" height="1626" alt="Screenshot 2026-06-06 161328" src="https://github.com/user-attachments/assets/294e1a1e-73cc-47c9-96ae-37e83288f471" />
 
 ## Features
 
@@ -52,7 +53,7 @@ This project helped me practice:
 * Git & GitHub Workflow
 * Deploying projects with Vercel
 
-## Author<img width="2859" height="1626" alt="Screenshot 2026-06-06 161328" src="https://github.com/user-attachments/assets/294e1a1e-73cc-47c9-96ae-37e83288f471" />
+## Author
 
 
 GitHub: https://github.com/selrio-spec
