@@ -69,6 +69,11 @@ button {
   cursor: pointer;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
@@ -390,7 +395,7 @@ select:focus {
 
 .task-item {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto;
+  grid-template-columns: 34px 36px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   min-height: 72px;
@@ -399,6 +404,16 @@ select:focus {
   border-left: 6px solid var(--mint);
   border-radius: 8px;
   background: var(--paper);
+  transition: border-color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+.task-item.dragging {
+  opacity: 0.45;
+}
+
+.task-item.drop-target {
+  border-color: var(--mint-strong);
+  transform: translateY(-2px);
 }
 
 .task-item[data-priority="focus"] {
@@ -418,12 +433,29 @@ select:focus {
 }
 
 .check-button,
+.drag-handle,
+.edit-button,
 .delete-button {
   display: grid;
   width: 34px;
   height: 34px;
   place-items: center;
   border-radius: 8px;
+}
+
+.drag-handle {
+  border: 1px solid var(--line);
+  background: var(--button-bg);
+  color: var(--muted);
+  cursor: grab;
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+  touch-action: none;
+}
+
+.task-item.dragging .drag-handle {
+  cursor: grabbing;
 }
 
 .check-button {
@@ -442,6 +474,19 @@ select:focus {
   display: block;
   overflow-wrap: anywhere;
   font-weight: 800;
+}
+
+.task-actions {
+  gap: 4px;
+}
+
+.edit-button,
+.delete-button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.95rem;
+  font-weight: 900;
 }
 
 .task-meta {
@@ -471,16 +516,43 @@ select:focus {
   background: rgba(246, 188, 200, 0.65);
 }
 
-.delete-button {
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  font-size: 1.25rem;
-}
-
+.edit-button:hover,
 .delete-button:hover {
   background: var(--mist);
   color: var(--ink);
+}
+
+.edit-form {
+  display: grid;
+  grid-column: 3 / 5;
+  grid-template-columns: minmax(160px, 1fr) minmax(115px, 140px) minmax(135px, 160px) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.edit-form input,
+.edit-form select {
+  min-height: 38px;
+}
+
+.save-edit-button,
+.cancel-edit-button {
+  min-height: 38px;
+  border-radius: 8px;
+  font-weight: 800;
+  padding: 0 12px;
+}
+
+.save-edit-button {
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.cancel-edit-button {
+  border: 1px solid var(--line);
+  background: var(--button-bg);
+  color: var(--muted);
 }
 
 .empty-state {
@@ -568,6 +640,16 @@ select:focus {
   }
 
   .task-item {
-    grid-template-columns: 34px minmax(0, 1fr) 34px;
+    grid-template-columns: 34px 34px minmax(0, 1fr);
+  }
+
+  .task-actions {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  .edit-form {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
   }
 }

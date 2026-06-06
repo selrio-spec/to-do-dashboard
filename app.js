@@ -25,6 +25,8 @@ const currentDate = document.querySelector("#currentDate");
 let tasks = loadTasks();
 let activeFilter = "all";
 let currentTheme = loadTheme();
+let editingTaskId = null;
+let draggedTaskId = null;
 
 const today = new Date();
 const todayKey = toDateKey(today);
@@ -66,18 +68,101 @@ taskList.addEventListener("click", (event) => {
   const item = button.closest(".task-item");
   const taskId = item?.dataset.id;
   if (!taskId) return;
+  if (!button.dataset.action) return;
 
   if (button.dataset.action === "toggle") {
     tasks = tasks.map((task) =>
       task.id === taskId ? { ...task, done: !task.done } : task
     );
+    editingTaskId = null;
+  }
+
+  if (button.dataset.action === "edit") {
+    editingTaskId = taskId;
+    render();
+    return;
+  }
+
+  if (button.dataset.action === "cancel-edit") {
+    editingTaskId = null;
+    render();
+    return;
   }
 
   if (button.dataset.action === "delete") {
     tasks = tasks.filter((task) => task.id !== taskId);
+    editingTaskId = null;
   }
 
   saveAndRender();
+});
+
+taskList.addEventListener("submit", (event) => {
+  const form = event.target.closest(".edit-form");
+  if (!form) return;
+
+  event.preventDefault();
+
+  const item = form.closest(".task-item");
+  const taskId = item?.dataset.id;
+  const title = form.elements.title.value.trim();
+  if (!taskId || !title) return;
+
+  tasks = tasks.map((task) =>
+    task.id === taskId
+      ? {
+          ...task,
+          title,
+          priority: form.elements.priority.value,
+          due: form.elements.due.value,
+        }
+      : task
+  );
+  editingTaskId = null;
+  saveAndRender();
+});
+
+taskList.addEventListener("dragstart", (event) => {
+  const item = event.target.closest(".task-item");
+  if (!item || editingTaskId) {
+    event.preventDefault();
+    return;
+  }
+
+  draggedTaskId = item.dataset.id;
+  item.classList.add("dragging");
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("text/plain", draggedTaskId);
+});
+
+taskList.addEventListener("dragover", (event) => {
+  const item = event.target.closest(".task-item");
+  if (!item || !draggedTaskId || item.dataset.id === draggedTaskId) return;
+
+  event.preventDefault();
+  item.classList.add("drop-target");
+});
+
+taskList.addEventListener("dragleave", (event) => {
+  const item = event.target.closest(".task-item");
+  item?.classList.remove("drop-target");
+});
+
+taskList.addEventListener("drop", (event) => {
+  const item = event.target.closest(".task-item");
+  if (!item || !draggedTaskId || item.dataset.id === draggedTaskId) return;
+
+  event.preventDefault();
+  reorderTasks(draggedTaskId, item.dataset.id);
+  draggedTaskId = null;
+  saveAndRender();
+});
+
+taskList.addEventListener("dragend", () => {
+  draggedTaskId = null;
+  document
+    .querySelectorAll(".task-item.dragging, .task-item.drop-target")
+    .forEach((item) => item.classList.remove("dragging", "drop-target"));
 });
 
 filterButtons.forEach((button) => {
@@ -110,19 +195,50 @@ function render() {
 function renderTask(task) {
   const dueText = task.due ? formatDueDate(task.due) : "No date";
   const checkedLabel = task.done ? "Mark task active" : "Mark task complete";
+  const isEditing = task.id === editingTaskId;
 
   return `
-    <li class="task-item ${task.done ? "done" : ""}" data-id="${task.id}" data-priority="${task.priority}">
+    <li class="task-item ${task.done ? "done" : ""}" data-id="${task.id}" data-priority="${task.priority}" draggable="${!isEditing}">
+      <button class="drag-handle" type="button" draggable="true" aria-label="Drag task to reorder" title="Drag to reorder">::</button>
       <button class="check-button" type="button" data-action="toggle" aria-label="${checkedLabel}">OK</button>
-      <div>
-        <span class="task-title">${escapeHtml(task.title)}</span>
-        <div class="task-meta">
-          <span class="pill ${task.priority}">${capitalize(task.priority)}</span>
-          <span>${dueText}</span>
-        </div>
-      </div>
-      <button class="delete-button" type="button" data-action="delete" aria-label="Delete task">x</button>
+      ${
+        isEditing
+          ? renderEditForm(task)
+          : `${renderTaskContent(task, dueText)}
+            <div class="task-actions">
+              <button class="edit-button" type="button" data-action="edit" aria-label="Edit task" title="Edit task">Edit</button>
+              <button class="delete-button" type="button" data-action="delete" aria-label="Delete task" title="Delete task">x</button>
+            </div>`
+      }
     </li>
+  `;
+}
+
+function renderTaskContent(task, dueText) {
+  return `
+    <div>
+      <span class="task-title">${escapeHtml(task.title)}</span>
+      <div class="task-meta">
+        <span class="pill ${task.priority}">${capitalize(task.priority)}</span>
+        <span>${dueText}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderEditForm(task) {
+  return `
+    <form class="edit-form">
+      <input name="title" type="text" value="${escapeHtml(task.title)}" aria-label="Task title" required />
+      <select name="priority" aria-label="Task priority">
+        <option value="gentle" ${task.priority === "gentle" ? "selected" : ""}>Gentle</option>
+        <option value="focus" ${task.priority === "focus" ? "selected" : ""}>Focus</option>
+        <option value="urgent" ${task.priority === "urgent" ? "selected" : ""}>Urgent</option>
+      </select>
+      <input name="due" type="date" value="${task.due ?? ""}" aria-label="Task due date" />
+      <button class="save-edit-button" type="submit">Save</button>
+      <button class="cancel-edit-button" type="button" data-action="cancel-edit">Cancel</button>
+    </form>
   `;
 }
 
@@ -169,6 +285,15 @@ function updateHint(count) {
 function saveAndRender() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
   render();
+}
+
+function reorderTasks(sourceId, targetId) {
+  const sourceIndex = tasks.findIndex((task) => task.id === sourceId);
+  const targetIndex = tasks.findIndex((task) => task.id === targetId);
+  if (sourceIndex < 0 || targetIndex < 0) return;
+
+  const [movedTask] = tasks.splice(sourceIndex, 1);
+  tasks.splice(targetIndex, 0, movedTask);
 }
 
 function loadTasks() {
